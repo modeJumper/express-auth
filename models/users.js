@@ -2,7 +2,7 @@ const DB = require('../config/database');
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(DB.name, DB.user, DB.pass, DB.options);
 
-const User = sequelize.define('user', {
+const User = sequelize.define('users', {
   id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
   createdAt: {type: Sequelize.DATE, field: 'created_at'},
   updatedAt: {type: Sequelize.DATE, field: 'updated_at'},

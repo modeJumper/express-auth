@@ -6,11 +6,16 @@ const secret = process.env.secret;
 const User = require('../models/users');
 
 
-/* GET users listing. */
+/**
+* GET users listing. 
+*
+
 router.get('/', async (req, res, next) => {
 	const users = await User.findAll();
 	res.send({count: users.length, users});
 });
+
+*/
 
 router.post('/', async (req, res) => {
   	const pass = bcrypt.hashSync(req.body.password, 8);
@@ -19,15 +24,28 @@ router.post('/', async (req, res) => {
 		where: { name }, 
 		defaults: { pass }
 	});
-
-	if (createdUser[1]) {
-	    var token = jwt.sign({ id: createdUser[0].id }, secret, {
-	      expiresIn: 86400 // 24h
-	    });
-		res.status(200).send({user: createdUser, token});
-	} else {
-		res.status(500).send("There was a problem registering the user.");
+	const token = req.headers['x-access-token'];
+	const createUser = () => {
+		if (createdUser[1]) {
+		    var token = jwt.sign({ id: createdUser[0].id }, secret, {
+		      expiresIn: 86400 // 24h
+		    });
+			res.status(200).send({user: createdUser, token});
+		} else {
+			res.status(500).send("There was a problem registering the user.");
+		}
 	}
+
+	if (!token) 
+		return res.status(401).send({ auth: false, message: 'No token provided.' });
+  
+  	jwt.verify(token, secret, async (err, decoded) => {
+    	if (err) {
+    		const message = 'Failed to authenticate token.';
+    		return res.status(500).send({ auth: false, message });
+    	}
+    	createUser();
+    });
 })
 
 router.get('/me', async (req, res, next) => {
